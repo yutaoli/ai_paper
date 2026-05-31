@@ -41,5 +41,5 @@ python -m unittest discover -v
 1. 先读 [mini-gpt.md](./mini-gpt.md)，理解 GPT 的最小工作链路。
 2. 再读 [mini_gpt.py](./mini_gpt.py) 和 [test_mini_gpt.py](./test_mini_gpt.py)，把概念对应到代码和测试。
 3. 最后读 [llm-people-reading-map.md](./llm-people-reading-map.md)，扩展到 LLM 历史、模型设计、Agent、工程落地和商业化。
-4. agent开发，参考：[mini-aiagent] (https://github.com/yutaoli/mini-aiagent)。
+4. agent开发，参考：[mini-aiagent](https://github.com/yutaoli/mini-aiagent)。
 
