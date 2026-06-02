@@ -1,6 +1,6 @@
 # LLM 学习人物与高价值材料地图
 
-最后更新：2026-05-31
+最后更新：2026-06-03
 
 ## 使用方式
 
@@ -68,6 +68,17 @@
 - François Chollet：ARC、智能度量、泛化。
 - Melanie Mitchell：AI 常识与“为什么 AI 比想象中难”。
 - Dan Hendrycks：MMLU、AI safety benchmark、模型风险评估。
+- Paul Christiano / Jan Leike：RLHF、偏好学习、可扩展监督和对齐研究早期路线。
+- Long Ouyang / OpenAI Alignment Team：InstructGPT、SFT + RM + RLHF 的产品化对齐流程。
+- Yuntao Bai / Amanda Askell / Anthropic Safety Team：Helpful/Harmless RLHF、Constitutional AI、原则反馈。
+- Alexander Wei / Nika Haghtalab / Jacob Steinhardt：Jailbroken，解释安全训练失败模式。
+- Andy Zou / Nicholas Carlini / J. Zico Kolter / Matt Fredrikson：通用可迁移 adversarial suffix jailbreak。
+- Kai Greshake / Sahar Abdelnabi / Mario Fritz / Thorsten Holz：间接 Prompt Injection 与 LLM 应用安全。
+- Yi Liu / Gelei Deng / Yuekang Li / Xiaofeng Wang / Tianwei Zhang / Yang Liu：真实 LLM 集成应用中的 Prompt Injection 攻击。
+- Patrick Chao / Alexander Robey / Eric Wong：PAIR、JailbreakBench，自动化黑盒越狱与基准。
+- Gelei Deng / Yi Liu / Kailong Wang / Yang Liu / Tianwei Zhang：MasterKey，跨多个 LLM chatbot 的自动化越狱框架。
+- Mantas Mazeika / Long Phan / Dan Hendrycks / CAIS：HarmBench、自动化红队和鲁棒拒答评测。
+- OWASP GenAI Security Project：LLM 应用与 agentic AI 威胁模型、行业安全清单。
 
 ### 四、工程、开源与应用架构
 
@@ -500,6 +511,83 @@
 建议关注：
 
 - 商业部署需要自建 eval，不应只相信通用榜单。
+
+### LLM Safety / Jailbreak / Prompt Injection Researchers
+
+核心价值：把“模型对齐”从训练目标扩展到攻击评测、越狱机制、Prompt Injection、应用权限和 agent 安全。
+
+代表人物与组织：
+
+- Paul Christiano / Jan Leike：RLHF、可扩展监督、对齐研究路线。
+- Long Ouyang / OpenAI Alignment Team：InstructGPT 和产品化 RLHF pipeline。
+- Yuntao Bai / Amanda Askell / Anthropic Safety Team：Helpful/Harmless RLHF、Constitutional AI。
+- Alexander Wei / Nika Haghtalab / Jacob Steinhardt：Jailbroken，分析安全训练失败机制。
+- Andy Zou / Nicholas Carlini / J. Zico Kolter / Matt Fredrikson：通用可迁移 adversarial jailbreak。
+- Kai Greshake / Sahar Abdelnabi / Mario Fritz / Thorsten Holz：间接 Prompt Injection。
+- Yi Liu / Gelei Deng / Yuekang Li / Xiaofeng Wang / Tianwei Zhang / Yang Liu：LLM 集成应用 Prompt Injection。
+- Patrick Chao / Alexander Robey / Eric Wong：PAIR、JailbreakBench，黑盒自动越狱与评测。
+- Gelei Deng / Yi Liu / Kailong Wang / Yang Liu / Tianwei Zhang：MasterKey，跨多个 LLM chatbot 的自动化越狱框架。
+- Mantas Mazeika / Long Phan / Dan Hendrycks / CAIS：HarmBench、自动化红队和鲁棒拒答评测。
+- OWASP GenAI Security Project：LLM 应用安全和 agentic AI 威胁清单。
+
+高价值材料：
+
+读这组材料时要先建立大局观：LLM 安全不是单点问题，而是从“模型训练后是否愿意拒绝危险请求”，一路扩展到“攻击者如何绕过拒答”“外部内容如何污染指令”“agent 工具权限如何被劫持”“如何用 benchmark 和 guardrails 持续检测”。因此阅读顺序应从机制理解开始，再看攻击方法，最后进入评测和防御。
+
+第一梯队：攻击全局和安全训练失效。
+
+- [Jailbroken: How Does LLM Safety Training Fail?](#hv-sec-001) - 局限性 / 安全 / 对齐  
+  优先读。它解释安全训练为什么会失败，核心是 competing objectives 和 mismatched generalization。读完后应能区分“模型能力问题”“拒答策略问题”和“分布外攻击问题”。
+- [“Do Anything Now”: In-The-Wild Jailbreak Prompts](#hv-sec-003) - 安全 / 评测  
+  看真实世界 DAN、角色扮演、规则覆盖类 jailbreak prompt。它能把抽象失效机制落到真实用户攻击样式上。
+- [Universal and Transferable Adversarial Attacks on Aligned Language Models](#hv-sec-002) - 安全 / 越狱  
+  从手工 prompt 进入自动优化 adversarial suffix，说明 jailbreak 可以是可迁移、可优化的攻击问题。
+
+第二梯队：Prompt Injection 和应用层攻击。
+
+- [Not what you've signed up for](#hv-sec-004) - Prompt Injection / 应用安全  
+  间接 Prompt Injection 入口。重点不是让模型说错话，而是让模型把网页、邮件、文档里的恶意文本当成指令。
+- [Prompt Injection attack against LLM-integrated Applications](#hv-sec-005) - Prompt Injection / 工程落地  
+  系统理解 LLM 应用中的数据流和攻击面：系统指令、用户指令、检索内容、工具输出混在同一上下文后，模型可能无法稳定区分可信与不可信文本。
+
+第三梯队：自动化越狱方法。
+
+- [Jailbreaking Black Box Large Language Models in Twenty Queries / PAIR](#hv-sec-006) - 自动化越狱 / 黑盒攻击  
+  用攻击模型迭代生成 jailbreak prompt，适合理解 API 黑盒攻击如何自动化。
+- [Tree of Attacks](#hv-sec-007) - 自动化越狱 / 搜索  
+  把越狱看成树状搜索问题，多分支探索和剪枝，比单一路径迭代更系统。
+- [AutoDAN](#hv-sec-008) - 自动化越狱 / 隐蔽攻击  
+  生成更自然、更隐蔽的 jailbreak prompt，提醒防御不能只靠关键词或异常字符串过滤。
+- [MasterKey](#hv-sec-016) - 自动化越狱 / 跨 chatbot 攻击  
+  研究如何自动化生成和验证可迁移 jailbreak，提出完整攻击框架：探测 → 生成 → 测试 → 优化，并比较多个商业 chatbot 的安全边界。
+
+第四梯队：评测与 benchmark。
+
+- [HarmBench](#hv-sec-009) - 安全评测 / 红队  
+  用标准 harmful behavior、攻击方法和评判器统一评测自动红队和鲁棒拒答。
+- [JailbreakBench](#hv-sec-010) - 越狱评测  
+  专门评估 jailbreak 鲁棒性，解决不同论文之间攻击集合和评判方式不可比的问题。
+- [BIPIA](#hv-sec-013) - 间接 Prompt Injection 评测  
+  面向 RAG、网页、文档、邮件等外部内容场景，评测模型是否会服从不可信文本中的恶意指令。
+- [XSTest](#hv-sec-011) / [Do-Not-Answer](#hv-sec-012) - 拒答质量  
+  一个看过度拒答，一个看应拒问题。安全不是“什么都拒绝”，而是该拒绝时拒绝、该回答时回答。
+
+第五梯队：防御、guardrails 和应用安全框架。
+
+- [Llama Guard](#hv-sec-014) - 输入/输出安全分类器  
+  理解为什么生产系统常需要独立 safeguard，而不能只依赖主模型自我约束。
+- [OWASP Top 10 for LLM Applications](#hv-154) - 应用安全  
+  把 Prompt Injection、敏感信息泄露、不安全输出处理、过度代理权限等问题放进工程安全清单。
+- [OWASP Agentic AI Threats](#hv-155) - agent 安全  
+  Agent 接入工具和执行权限后，风险从“文本有害”升级为“行动有害”，必须用最小权限、审计、确认点和沙箱控制。
+- [Direct Preference Optimization / DPO](#hv-sec-015) - 对齐后训练  
+  作为 RLHF 之后的偏好优化路线补充阅读。它能解释现代对齐训练如何降低 PPO/RLHF 工程复杂度，但不能单独解决 jailbreak 和 Prompt Injection。
+
+建议关注：
+
+- 对齐不是一次性训练完成的属性，而是“模型行为 + 系统 prompt + 工具权限 + 输入来源 + 输出处理 + 监控评测”的系统问题。
+- 越狱主要攻击模型的拒答边界；Prompt Injection 主要攻击应用中的指令优先级、外部内容和工具权限。
+- Agent 场景中风险更高，因为错误输出可能变成真实动作。
 
 ### Thomas Wolf
 
@@ -1561,6 +1649,24 @@ Agent 的风险来自两层叠加：LLM 本身会幻觉、误判和受 prompt in
 
 ### B. 世界模型、对齐、安全、局限与可解释性材料
 
+这一组材料现在包含四条互相纠缠的历史线：
+
+1. 对齐线：RLHF / Constitutional AI / DPO 等方法把“会续写的基础模型”变成“更愿意遵循人类意图、拒绝危险请求的助手”。
+2. 失效线：Jailbroken、universal adversarial suffix、DAN 类 prompt 说明安全训练会在分布外指令、目标冲突和泛化错配下失效。
+3. 应用安全线：Prompt Injection、indirect prompt injection、agentic AI threats 说明 LLM 接入网页、邮件、文档、工具和权限后，攻击面从模型输出扩展到业务动作。
+4. 评测与防御线：HarmBench、JailbreakBench、BIPIA、XSTest、Do-Not-Answer、Llama Guard、OWASP 把安全从“几个红队样例”推进到可复现 benchmark、分类器和工程控制。
+
+#### 对齐、安全、越狱与 Prompt Injection 历史线
+
+```text
+2020-2022: GPT-3 证明通用语言能力，InstructGPT / HH-RLHF / Constitutional AI 让助手更可控
+2022:      prompt injection 被系统性提出，说明自然语言指令本身可以成为攻击载体
+2023:      ChatGPT 普及后，DAN、Jailbroken、indirect prompt injection、universal adversarial suffix 集中暴露安全训练失效
+2023-2024: MasterKey、PAIR、TAP、AutoDAN 等自动化越狱方法出现，安全从手工红队转向算法化攻击
+2024:      HarmBench、JailbreakBench、BIPIA、XSTest、Do-Not-Answer 等基准推动可复现评测
+2024-2026: Llama Guard、OWASP、agentic AI threats 和企业 guardrails 把问题推进到模型 + 应用 + 权限 + 审计的系统安全
+```
+
 <a id="hv-018"></a>
 
 #### 18. A Path Towards Autonomous Machine Intelligence
@@ -1826,6 +1932,232 @@ Agent 的风险来自两层叠加：LLM 本身会幻觉、误判和受 prompt in
 - 适用范围：模型横向比较、知识密集任务评估、发布报告和初步选型。
 - 局限性：多选题不能代表真实业务能力；数据污染和 benchmark overfitting 风险高；不评估工具使用、长程任务和实际可靠性。
 - 交叉验证：HELM 主张用多维指标补足单一 benchmark；ARC 强调抽象泛化；企业 eval 需要用真实任务集替代只看 MMLU。
+
+#### 对齐、安全、越狱与 Prompt Injection 扩展材料
+
+<a id="hv-sec-001"></a>
+
+#### SEC-001. Jailbroken: How Does LLM Safety Training Fail?
+
+链接：[Jailbroken: How Does LLM Safety Training Fail?](https://arxiv.org/abs/2307.02483)
+
+- 历史：ChatGPT 类模型普及后，对“安全训练为什么仍会被越狱”的早期系统分析之一。
+- 概念：安全训练可能因 competing objectives、mismatched generalization、训练分布和攻击分布错配而失效。
+- 为什么重要：它把 jailbreak 从“prompt 技巧”提升为安全训练失效机制问题，是学习越狱和对齐局限的入口。
+- 流程 / 怎么做：构造多类 jailbreak 形式并分析模型何时服从有害目标、何时执行安全拒答。
+- 适用范围：模型安全评测、红队、拒答策略设计、对齐研究。
+- 局限性：主要分析文本对话层 jailbreak；不能覆盖所有 agent 工具调用、权限和间接注入风险。
+- 交叉验证：Universal Adversarial Attacks 展示更自动化的攻击；DAN 论文补真实社区 prompt；HarmBench/JailbreakBench 补标准化评测。
+
+<a id="hv-sec-002"></a>
+
+#### SEC-002. Universal and Transferable Adversarial Attacks on Aligned Language Models
+
+链接：[Universal and Transferable Adversarial Attacks on Aligned Language Models](https://arxiv.org/abs/2307.15043)
+
+- 历史：证明 aligned LLM 可被通用 adversarial suffix 攻击的重要论文，引发大量防御和评测后续工作。
+- 概念：通过优化一段后缀，让模型绕过安全拒答并输出目标内容；攻击可在不同模型间迁移。
+- 为什么重要：说明 jailbreak 不只是人工 prompt 工程，也可以是优化问题和可迁移攻击。
+- 流程 / 怎么做：用梯度或搜索优化 suffix，使模型在有害请求后更可能生成攻击者想要的开头和内容。
+- 适用范围：红队、鲁棒性评测、安全后训练、拒答机制研究。
+- 局限性：具体攻击效果受模型、解码策略和安全更新影响；优化 suffix 不等于真实应用中所有攻击。
+- 交叉验证：PAIR/TAP/AutoDAN 从黑盒和自动化角度推进；JailbreakBench/HarmBench 用 benchmark 跟踪鲁棒性。
+
+<a id="hv-sec-003"></a>
+
+#### SEC-003. “Do Anything Now”: Characterizing and Evaluating In-The-Wild Jailbreak Prompts
+
+链接：[“Do Anything Now”: Characterizing and Evaluating In-The-Wild Jailbreak Prompts on Large Language Models](https://arxiv.org/abs/2308.03825)
+
+- 历史：DAN 和角色扮演类越狱在用户社区传播后，对真实 jailbreak prompt 进行系统测量。
+- 概念：越狱 prompt 常通过角色设定、规则覆盖、情景模拟、奖励惩罚和格式约束诱导模型越过安全边界。
+- 为什么重要：补足论文攻击之外的真实用户行为，让安全评测更贴近线上滥用。
+- 流程 / 怎么做：收集野生 jailbreak prompt，分类攻击策略，并在多个模型上测试成功率。
+- 适用范围：安全策略设计、内容政策、红队数据集建设、拒答鲁棒性评估。
+- 局限性：野生 prompt 会快速过时；模型安全更新会改变成功率；样本来源可能有社区偏差。
+- 交叉验证：Jailbroken 提供机制解释；Universal Attacks 提供算法化攻击；XSTest 提醒不能只追求拒答，还要避免过度拒答。
+
+<a id="hv-sec-004"></a>
+
+#### SEC-004. Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection
+
+链接：[Not what you've signed up for: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection](https://arxiv.org/abs/2302.12173)
+
+- 历史：间接 Prompt Injection 的经典论文之一，把攻击面从用户 prompt 扩展到网页、邮件、文档等外部内容。
+- 概念：攻击者把恶意指令藏在模型会读取的第三方内容中，诱导应用忽略原任务、泄露信息或调用工具。
+- 为什么重要：RAG、浏览器 agent、邮件助手、文档助手都依赖外部内容，不能把检索内容当作可信指令。
+- 流程 / 怎么做：构造恶意网页/文本片段，让 LLM 应用在总结、检索或执行任务时读取并服从其中的攻击指令。
+- 适用范围：RAG、浏览器/邮件/办公 agent、插件系统、企业知识助手安全。
+- 局限性：攻击效果依赖应用架构、工具权限和模型策略；论文案例需要结合现代平台能力更新。
+- 交叉验证：Prompt Injection attack against LLM-integrated Applications 补应用级攻击分类；OWASP 提供工程安全清单；BIPIA 提供 benchmark。
+
+<a id="hv-sec-005"></a>
+
+#### SEC-005. Prompt Injection attack against LLM-integrated Applications
+
+链接：[Prompt Injection attack against LLM-integrated Applications](https://arxiv.org/abs/2306.05499)
+
+- 历史：LLM 集成应用安全早期重要论文，系统讨论 prompt injection 如何攻击真实应用。
+- 概念：当系统指令、用户指令、检索内容和工具输出混在同一上下文中，模型可能无法稳定区分可信指令和不可信文本。
+- 为什么重要：它说明 Prompt Injection 是应用架构问题，不只是模型安全微调问题。
+- 流程 / 怎么做：分析 LLM 应用数据流，构造恶意输入影响模型决策、输出或工具调用。
+- 适用范围：插件、RAG、企业助手、工具调用 agent、低代码自动化。
+- 局限性：不同平台的指令层级、防护和工具 API 差异大；需要配合 threat modeling 做系统评估。
+- 交叉验证：Indirect Prompt Injection 关注第三方内容；OWASP LLM Top 10 将其纳入行业风险；agent 安全材料强调权限最小化。
+
+<a id="hv-sec-006"></a>
+
+#### SEC-006. Jailbreaking Black Box Large Language Models in Twenty Queries / PAIR
+
+链接：[Jailbreaking Black Box Large Language Models in Twenty Queries](https://arxiv.org/abs/2310.08419)
+
+- 历史：黑盒自动化越狱代表工作，展示不需要模型权重也能用攻击模型迭代生成 jailbreak。
+- 概念：用一个攻击者 LLM 根据目标模型反馈不断改写 prompt，少量查询内提升攻击成功率。
+- 为什么重要：真实攻击者通常只能访问 API 黑盒；PAIR 让红队从人工枚举变成自动搜索。
+- 流程 / 怎么做：攻击模型生成 prompt，目标模型响应，评判器评估成功度，再反馈给攻击模型迭代。
+- 适用范围：闭源模型红队、API 安全评测、自动化 adversarial testing。
+- 局限性：依赖评判器质量；可能被平台速率限制和监控发现；成功样本不等于完整风险覆盖。
+- 交叉验证：TAP 扩展搜索结构；AutoDAN 强调隐蔽性；HarmBench/JailbreakBench 提供统一评测。
+
+<a id="hv-sec-007"></a>
+
+#### SEC-007. Tree of Attacks: Jailbreaking Black-Box LLMs Automatically
+
+链接：[Tree of Attacks: Jailbreaking Black-Box LLMs Automatically](https://arxiv.org/abs/2312.02119)
+
+- 历史：在 PAIR 类自动攻击之后，把越狱搜索扩展成树状探索的重要工作。
+- 概念：把 prompt 攻击看成搜索问题，同时探索多个候选分支并剪枝，提升自动化越狱效率。
+- 为什么重要：说明越狱攻击可以借鉴规划和搜索，而不是单次 prompt 生成。
+- 流程 / 怎么做：生成多条攻击候选，对目标模型测试，用评分器选择更有希望的分支继续扩展。
+- 适用范围：黑盒红队、自动安全测试、比较不同模型拒答鲁棒性。
+- 局限性：攻击成本和查询次数仍是现实约束；评分器偏差会影响搜索方向。
+- 交叉验证：PAIR 是更简单的迭代基线；AutoDAN 强调隐蔽 prompt；JailbreakBench 提供评测集合。
+
+<a id="hv-sec-008"></a>
+
+#### SEC-008. AutoDAN: Generating Stealthy Jailbreak Prompts on Aligned Large Language Models
+
+链接：[AutoDAN: Generating Stealthy Jailbreak Prompts on Aligned Large Language Models](https://arxiv.org/abs/2310.04451)
+
+- 历史：从可见的攻击后缀推进到更自然、更隐蔽 jailbreak prompt 的代表工作。
+- 概念：自动生成看起来更像自然语言、更不容易被简单过滤器发现的越狱提示。
+- 为什么重要：如果防御只依赖关键词或异常字符串检测，隐蔽 jailbreak 会绕过这类浅层过滤。
+- 流程 / 怎么做：用自动搜索/遗传算法等方式生成满足攻击目标和自然性约束的 prompt。
+- 适用范围：红队、过滤器鲁棒性测试、内容安全策略评估。
+- 局限性：具体实现和成功率随模型更新变化；隐蔽性评估本身也需要标准化。
+- 交叉验证：Universal Attacks 偏 adversarial suffix；DAN 论文偏真实社区 prompt；HarmBench/JailbreakBench 负责统一测量。
+
+<a id="hv-sec-016"></a>
+
+#### SEC-016. MasterKey: Automated Jailbreaking of Large Language Model Chatbots
+
+链接：[MasterKey: Automated Jailbreaking of Large Language Model Chatbots](https://arxiv.org/abs/2307.08715)
+
+- 历史：ChatGPT、Bard、Bing Chat 等商业 chatbot 流行后，较早系统研究跨 chatbot 自动化越狱的工作。
+- 概念：把 jailbreak prompt 生成、攻击测试和成功判定组织成自动化流程，寻找可迁移的攻击模式。
+- 为什么重要：它说明安全风险不只存在于单个模型或单个 prompt，而是可以被系统化发现、比较和复用。
+- 流程 / 怎么做：构造攻击 prompt 生成器和评估器，对多个 chatbot 进行自动化测试，并根据反馈迭代攻击样式。
+- 适用范围：商业 chatbot 红队、跨模型安全比较、自动化 adversarial testing、越狱攻击模式研究。
+- 局限性：模型和产品安全策略变化很快，早期结果不能直接代表当前模型；攻击评判仍可能有误差。
+- 交叉验证：PAIR 更强调少量查询的黑盒迭代；TAP 把攻击组织成树搜索；AutoDAN 强调隐蔽自然语言攻击；HarmBench/JailbreakBench 提供后续标准化评测。
+
+<a id="hv-sec-009"></a>
+
+#### SEC-009. HarmBench: A Standardized Evaluation Framework for Automated Red Teaming and Robust Refusal
+
+链接：[HarmBench: A Standardized Evaluation Framework for Automated Red Teaming and Robust Refusal](https://arxiv.org/abs/2402.04249)
+
+- 历史：CAIS 等团队推动的标准化安全评测框架，将红队攻击和拒答鲁棒性系统化。
+- 概念：用有害行为分类、攻击方法、目标模型和评判器组成统一评测协议。
+- 为什么重要：安全不能只看几个 jailbreak demo，需要可复现、可比较、可持续更新的 benchmark。
+- 流程 / 怎么做：定义 harmful behavior 集合，运行多种攻击，评估模型是否输出不安全内容或稳健拒答。
+- 适用范围：模型发布前安全评测、后训练对比、企业模型选型和红队基准。
+- 局限性：任何 benchmark 都可能被过拟合；自动评判器会误判；真实业务风险仍需定制测试。
+- 交叉验证：JailbreakBench 聚焦 jailbreak 鲁棒性；Do-Not-Answer 和 XSTest 补拒答质量；OWASP 补应用安全。
+
+<a id="hv-sec-010"></a>
+
+#### SEC-010. JailbreakBench: An Open Robustness Benchmark for Jailbreaking Large Language Models
+
+链接：[JailbreakBench: An Open Robustness Benchmark for Jailbreaking Large Language Models](https://arxiv.org/abs/2404.01318)
+
+- 历史：为 jailbreak 研究提供开放、可复现 benchmark 的代表工作。
+- 概念：标准化有害请求、攻击 prompt、评判流程和模型比较方式。
+- 为什么重要：解决越狱研究中“每篇论文用不同 prompt、不同评判器、不同模型”的不可比问题。
+- 流程 / 怎么做：构建 jailbreak prompt 和行为集合，对模型进行统一攻击和安全评估。
+- 适用范围：模型鲁棒性比较、红队方法评估、安全后训练验收。
+- 局限性：开放 benchmark 容易被针对性优化；真实攻击会持续变形。
+- 交叉验证：HarmBench 覆盖更广 harmful behavior；PAIR/TAP/AutoDAN 提供攻击方法；XSTest 衡量过度拒答副作用。
+
+<a id="hv-sec-011"></a>
+
+#### SEC-011. XSTest: Identifying Exaggerated Safety Behaviours in Large Language Models
+
+链接：[XSTest: Identifying Exaggerated Safety Behaviours in Large Language Models](https://arxiv.org/abs/2308.01263)
+
+- 历史：在模型安全拒答增强后，专门研究“过度安全/误拒答”的重要评测。
+- 概念：模型可能把无害请求误判为危险请求，导致用户体验下降和任务失败。
+- 为什么重要：安全不是拒答越多越好；企业助手需要同时做到该拒绝时拒绝、该回答时回答。
+- 流程 / 怎么做：构造容易触发误拒答但实际安全的请求，评估模型是否 exaggerated refusal。
+- 适用范围：安全后训练、拒答策略、客服/教育/医疗等敏感但合法场景。
+- 局限性：边界判断依赖政策和上下文；不同领域的合规要求不同。
+- 交叉验证：HarmBench/JailbreakBench 测漏答有害内容；XSTest 测误拒无害内容，两者必须一起看。
+
+<a id="hv-sec-012"></a>
+
+#### SEC-012. Do-Not-Answer: A Dataset for Evaluating Safeguards in LLMs
+
+链接：[Do-Not-Answer: A Dataset for Evaluating Safeguards in LLMs](https://arxiv.org/abs/2308.13387)
+
+- 历史：围绕“哪些问题模型不应回答”建立数据集的安全评测工作。
+- 概念：把不应回答的问题分成隐私、法律、医疗、金融、危险行为、歧视等类别，评估 safeguard。
+- 为什么重要：模型安全需要清晰负样本和拒答标准，而不是只依赖模糊政策描述。
+- 流程 / 怎么做：收集/构造不应回答问题，评估模型是否拒绝或给出安全替代。
+- 适用范围：内容安全、合规助手、安全 benchmark、模型发布测试。
+- 局限性：政策边界会随地区和产品变化；拒答质量也需要人工审查。
+- 交叉验证：XSTest 测误拒；Do-Not-Answer 测应拒；Llama Guard 可作为输入/输出分类器辅助执行。
+
+<a id="hv-sec-013"></a>
+
+#### SEC-013. BIPIA: Benchmarking and Defending Against Indirect Prompt Injection Attacks on Large Language Models
+
+链接：[Benchmarking and Defending Against Indirect Prompt Injection Attacks on Large Language Models](https://arxiv.org/abs/2312.14197)
+
+- 历史：间接 Prompt Injection 从案例进入 benchmark 阶段的重要工作。
+- 概念：外部内容中的恶意指令与用户任务混在一起，模型可能错误服从不可信文本。
+- 为什么重要：RAG 和 agent 的核心就是读取外部内容，BIPIA 让这类风险可以系统评估。
+- 流程 / 怎么做：构造多任务、多来源的间接注入样本，测试模型是否忽略用户目标或泄露/执行不该执行的内容。
+- 适用范围：RAG、网页浏览 agent、邮件助手、文档分析、企业内部知识系统。
+- 局限性：benchmark 场景不能覆盖所有真实工具权限；防御需要系统架构配合。
+- 交叉验证：Indirect Prompt Injection 论文给出早期案例；OWASP 给出应用安全分类；agent threat model 说明权限和动作风险。
+
+<a id="hv-sec-014"></a>
+
+#### SEC-014. Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations
+
+链接：[Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations](https://arxiv.org/abs/2312.06674)
+
+- 历史：开放模型生态中重要的输入/输出安全分类器路线。
+- 概念：用专门安全模型对用户输入和模型输出进行分类，辅助应用决定放行、拒绝或改写。
+- 为什么重要：生产系统不能只依赖主模型自我约束；独立 guard 可以作为 defense-in-depth 的一层。
+- 流程 / 怎么做：定义安全分类 taxonomy，用标注数据训练分类器，在应用前后链路中检测风险。
+- 适用范围：聊天助手、开放模型部署、内容审核、企业 guardrails。
+- 局限性：分类器会漏报/误报；不能替代权限控制、人工审计和应用级 threat modeling。
+- 交叉验证：Llama 3 herd 把安全模型作为模型家族一部分；OWASP 说明 guard 只是多层防御之一；XSTest 提醒注意误拒。
+
+<a id="hv-sec-015"></a>
+
+#### SEC-015. Direct Preference Optimization / DPO
+
+链接：[Direct Preference Optimization: Your Language Model is Secretly a Reward Model](https://arxiv.org/abs/2305.18290)
+
+- 历史：在 RLHF 复杂度和 PPO 工程成本之后，DPO 成为偏好优化的重要简化路线。
+- 概念：不显式训练 reward model 和运行 RL，而是直接用偏好对优化语言模型。
+- 为什么重要：它降低对齐后训练工程复杂度，是理解现代 SFT 后偏好优化的关键材料。
+- 流程 / 怎么做：用 chosen/rejected 回答对构造目标函数，让模型提高偏好回答概率、降低非偏好回答概率。
+- 适用范围：指令模型、聊天模型、风格对齐、偏好数据后训练。
+- 局限性：偏好数据仍决定上限；不能单独解决 jailbreak、工具权限和事实性问题。
+- 交叉验证：InstructGPT/HH-RLHF 是 RLHF 路线；Constitutional AI 提供原则反馈；Jailbroken 显示安全训练仍可能失效。
 
 ### C. 工程落地、RAG、微调与推理效率材料
 
@@ -3711,6 +4043,14 @@ Agent 的风险来自两层叠加：LLM 本身会幻觉、误判和受 prompt in
 6. Melanie Mitchell - [Why AI is Harder Than We Think](#hv-035)
 7. Anthropic - [Helpful and Harmless Assistant](#hv-023) / [Constitutional AI](#hv-024)
 8. Lilian Weng - [Extrinsic Hallucinations in LLMs](#hv-149)
+9. Wei/Steinhardt - [Jailbroken](#hv-sec-001)
+10. Zou/Carlini/Kolter/Fredrikson - [Universal Adversarial Attacks](#hv-sec-002)
+11. Greshake/Abdelnabi/Fritz/Holz - [Indirect Prompt Injection](#hv-sec-004)
+12. Chao/Robey/Wong - [PAIR](#hv-sec-006) / [JailbreakBench](#hv-sec-010)
+13. Deng/Liu/Wang/Zhang - [MasterKey](#hv-sec-016)
+14. CAIS - [HarmBench](#hv-sec-009)
+15. Meta - [Llama Guard](#hv-sec-014)
+16. OWASP - [LLM Top 10](#hv-154) / [Agentic AI Threats](#hv-155)
 
 ### 4. 想做工程落地
 
@@ -3823,6 +4163,18 @@ Agent 的风险来自两层叠加：LLM 本身会幻觉、误判和受 prompt in
 - Olah：内部机制和可解释性。
 - Liang：评测和长上下文。
 - Agent 局限：prompt injection、权限、成本、可观测性、工具错误、多步错误累积。
+
+### 对齐、安全、越狱和 Prompt Injection
+
+安全线解决“模型和应用如何被攻击、如何评测、如何防住”：对齐训练让模型更愿意遵循人类意图，但越狱会攻击拒答边界，Prompt Injection 会攻击应用的指令层级和工具权限。生产系统必须同时做模型安全、应用安全、权限隔离和持续评测。
+
+- RLHF / Instruction Alignment：Schulman/OpenAI、Dario Amodei/Anthropic、[InstructGPT](#hv-016)、[HH-RLHF](#hv-023)、[Constitutional AI](#hv-024)、[DPO](#hv-sec-015)。
+- Safety training failure：[Jailbroken](#hv-sec-001)，理解 competing objectives 和 mismatched generalization。
+- Jailbreak attacks：[Universal Adversarial Attacks](#hv-sec-002)、[Do Anything Now](#hv-sec-003)、[PAIR](#hv-sec-006)、[Tree of Attacks](#hv-sec-007)、[AutoDAN](#hv-sec-008)、[MasterKey](#hv-sec-016)。
+- Prompt Injection：[Indirect Prompt Injection](#hv-sec-004)、[Prompt Injection attack against LLM-integrated Applications](#hv-sec-005)、[BIPIA](#hv-sec-013)。
+- Safety benchmarks：[HarmBench](#hv-sec-009)、[JailbreakBench](#hv-sec-010)、[XSTest](#hv-sec-011)、[Do-Not-Answer](#hv-sec-012)。
+- Guardrails / defense：[Llama Guard](#hv-sec-014)、[OWASP Top 10 for LLM Applications](#hv-154)、[OWASP Agentic AI Threats](#hv-155)。
+- 关键区分：jailbreak 多数是在让模型输出本该拒绝的内容；prompt injection 多数是在让应用把不可信文本当成高优先级指令，尤其危险于 RAG、浏览器、邮件和工具调用 agent。
 
 ### 工程落地
 
